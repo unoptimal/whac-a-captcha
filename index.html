@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="mole.PNG" type="image/x-icon">
+<title>Whac-A-Captcha</title>
+<style>
+     body {
+      font-family: Roboto, sans-serif;
+      background-color: rgb(208, 197, 197);
+      margin: 0; 
+      height: 100vh; 
+      display: flex;
+      justify-content: center; 
+      align-items: center; 
+    }
+    .captcha-container {
+      background-color: white;
+      width: 350px; 
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+  .captcha-header {
+    background-color: #4285f4; 
+    color: white;
+    padding: 10px;
+    text-align: left;
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+  .captcha-header strong {
+    display: block;
+    font-size: 24px;
+    margin-top: 5px;
+  }
+  .captcha-header span {
+    display: block;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-bottom: 20px;
+  }
+  .box {
+    width: 100px;
+    height: 100px;
+    background-color: #ddd;
+    border: 1px solid #ccc;
+    position: relative;
+  }
+  .mole, .dirtmound {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+    .mole {
+        display: none; 
+    }
+
+  .button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.verify-button {
+  background-color: #4285f4; 
+  color: white;
+  padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.icon-bar {
+  display: flex;
+  align-items: center; 
+}
+.icon-bar img {
+  width: 20px; 
+  height: 20px;
+  object-fit: contain;
+  margin-right: 10px; 
+}
+.icon.retry-icon {
+  width: 30px; 
+  height: 30px;
+}
+
+.icon-bar img:last-child {
+  margin-right: 0;
+}
+
+.popup {
+  position: fixed; 
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -25%);
+}
+
+a{
+    text-decoration: none;
+    color: #16b7ff;
+}
+
+
+</style>
+</head>
+<body>
+<div class="captcha-container">
+    <div class="captcha-header">
+        Select all images with
+        <strong>moles</strong>
+        <span>Click verify once there are none left.</span>
+    </div>
+  <div class="grid">
+    <div class="box">
+        <img src="dirtmound.png" class="dirtmound" alt="Dirt Mound">
+        <img src="mole.png" class="mole" alt="Mole">
+    </div>
+    <div class="box">
+        <img src="dirtmound.png" class="dirtmound" alt="Dirt Mound">
+        <img src="mole.png" class="mole" alt="Mole">
+    </div>
+    <div class="box">
+        <img src="dirtmound.png" class="dirtmound" alt="Dirt Mound">
+        <img src="mole.png" class="mole" alt="Mole">
+    </div>
+    <div class="box">
+        <img src="dirtmound.png" class="dirtmound" alt="Dirt Mound">
+        <img src="mole.png" class="mole" alt="Mole">
+    </div>
+    <div class="box">
+        <img src="dirtmound.png" class="dirtmound" alt="Dirt Mound">
+        <img src="mole.png" class="mole" alt="Mole">
+    </div>
+    <div class="box">
+        <img src="dirtmound.png" class="dirtmound" alt="Dirt Mound">
+        <img src="mole.png" class="mole" alt="Mole">
+    </div>
+    <div class="box">
+        <img src="dirtmound.png" class="dirtmound" alt="Dirt Mound">
+        <img src="mole.png" class="mole" alt="Mole">
+    </div>
+    <div class="box">
+        <img src="dirtmound.png" class="dirtmound" alt="Dirt Mound">
+        <img src="mole.png" class="mole" alt="Mole">
+    </div>
+    <div class="box">
+        <img src="dirtmound.png" class="dirtmound" alt="Dirt Mound">
+        <img src="mole.png" class="mole" alt="Mole">
+    </div>
+  </div>
+  <div class="button-container">
+    <div class="icon-bar">
+      <img src="retry.png" alt="Retry" id='retryIcon' class="icon retry-icon">
+      <img src="headset.png" alt="Headphones" class="icon">
+      <img src="info.png" alt="Information" id='infoIcon' class="infoIcon">
+    </div>
+    <button class="verify-button">Verify</button>
+  </div>
+</div>
+
+<div id="infoPopup" class="popup" style="display: none;">
+    <p>by <a href="https://unoptimal.com/" target="_blank">unoptimal</a></p>
+    <button onclick="closeInfoPopup()">Close</button>
+  </div>
+  
+
+
+<script>
+    const moles = document.querySelectorAll('.mole');
+    let totalMolesToWhack = 10; 
+    let molesWhacked = 0;
+    let gameActive = true;
+    let verifyButton = document.querySelector('.verify-button');
+
+    document.getElementById('retryIcon').addEventListener('click', resetGame);
+    document.getElementById('infoIcon').addEventListener('click', toggleInfoPopup);
+
+    function resetGame() {
+    molesWhacked = 0;
+    gameActive = true;
+    showRandomMole();
+    }
+
+    function toggleInfoPopup(event) {
+    var popup = document.getElementById('infoPopup');
+    if (popup.style.display === 'none') {
+        popup.style.display = 'block';
+        document.addEventListener('click', closeInfoPopup);
+        event.stopPropagation();
+    } else {
+        popup.style.display = 'none';
+        document.removeEventListener('click', closeInfoPopup);
+    }
+    }
+
+    function closeInfoPopup(event) {
+    var popup = document.getElementById('infoPopup');
+    if (event.target.id !== 'infoIcon' && event.target.id !== 'infoPopup') {
+        popup.style.display = 'none';
+        document.removeEventListener('click', closeInfoPopup);
+    }
+    }
+
+    function randomTime(min, max) {
+      return Math.round(Math.random() * (max - min) + min);
+    }
+  
+    function showMole(mole) {
+      if (!gameActive) return;
+  
+      mole.style.display = 'block';
+      setTimeout(() => {
+        mole.style.display = 'none'; 
+      }, randomTime(800, 1200)); 
+    }
+  
+    function showRandomMole() {
+      if (molesWhacked < totalMolesToWhack && gameActive) {
+        const index = Math.floor(Math.random() * moles.length);
+        const mole = moles[index];
+        showMole(mole);
+        setTimeout(showRandomMole, randomTime(300, 500)); 
+      }
+    }
+  
+    moles.forEach(mole => mole.addEventListener('click', () => {
+      if (mole.style.display === 'block' && gameActive) {
+        molesWhacked++;
+        mole.style.display = 'none';
+        if (molesWhacked >= totalMolesToWhack) {
+          gameActive = false;
+        }
+      }
+    }));
+
+
+    verifyButton.addEventListener('click', () => {
+      if (!gameActive) {
+        alert('Success! You whacked all the moles!');
+      } else {
+        alert(`Not done yet! You've whacked ${molesWhacked} out of ${totalMolesToWhack} moles.`);
+      }
+    });
+
+  
+    showRandomMole(); 
+  </script>
+  
+  
+</body>
+</html>
